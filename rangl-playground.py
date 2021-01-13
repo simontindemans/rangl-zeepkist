@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 class PlotWrapper(gym.Wrapper):
+    """
+    Wrapper that modifies the plot function to show realised instead of forecast values in the bottom right.
+    """
 
     def __init__(self, env):
         super().__init__(env)
@@ -62,12 +65,16 @@ class PlotWrapper(gym.Wrapper):
 
 
 class ResetWrapper(gym.Wrapper):
+    """
+    Wrapper that modifies the reset() function to randomise the second peak.
+    """
     
     def __init__(self, env):
         super().__init__(env)
 
     def reset(self):
         # dirty override of a private parameter
+        # this creates an instance variable instead of the class variable in Parameters()
         self.env.param.second_peak_time = np.random.randint(low=10, high=95)
         return super().reset()
 
@@ -152,7 +159,7 @@ base_env = gym.make("reference_environment:reference-environment-v0")
 env = ResetWrapper(PlotWrapper(ActWrapper(ObsWrapper(base_env))))
 
 # Train an RL agent on the environment
-model = train_rl(env, models_to_train=1, episodes_per_model=2)
+model = train_rl(env, models_to_train=1, episodes_per_model=500)
 
 # Perform two independent runs
 env.seed(42)
