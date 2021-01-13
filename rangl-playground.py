@@ -15,44 +15,61 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+class PlotWrapper(gym.Wrapper):
 
-def plot_v2(state, fname):
-    fig, ax = plt.subplots(2, 2)
+    def __init__(self, env):
+        super().__init__(env)
+        
+    def plot(self, fname):
+        state = self.state
 
-    # cumulative total cost
-    plt.subplot(221)
-    plt.plot(np.cumsum(state.rewards_all))
-    plt.xlabel("time")
-    plt.ylabel("cumulative reward")
-    plt.tight_layout()
-    # could be expanded to include individual components of the reward
+        fig, ax = plt.subplots(2, 2)
 
-    # generator levels
-    plt.subplot(222)
-    plt.plot(np.array(state.generator_1_levels_all))
-    plt.plot(np.array(state.generator_2_levels_all))
-    plt.xlabel("time")
-    plt.ylabel("generator levels")
-    plt.tight_layout()
+        # cumulative total cost
+        plt.subplot(221)
+        plt.plot(np.cumsum(state.rewards_all))
+        plt.xlabel("time")
+        plt.ylabel("cumulative reward")
+        plt.tight_layout()
+        # could be expanded to include individual components of the reward
 
-
-    # actions
-    plt.subplot(223)
-    plt.plot(np.array(state.actions_all))
-    plt.xlabel("time")
-    plt.ylabel("actions")
-    plt.tight_layout()
+        # generator levels
+        plt.subplot(222)
+        plt.plot(np.array(state.generator_1_levels_all))
+        plt.plot(np.array(state.generator_2_levels_all))
+        plt.xlabel("time")
+        plt.ylabel("generator levels")
+        plt.tight_layout()
 
 
-    # agent predictions
-    plt.subplot(224)
-    plt.plot(np.diagonal(np.array(state.agent_predictions_all)))
-    plt.xlabel("time")
-    plt.ylabel("realistations")
-    plt.tight_layout()
+        # actions
+        plt.subplot(223)
+        plt.plot(np.array(state.actions_all))
+        plt.xlabel("time")
+        plt.ylabel("actions")
+        plt.tight_layout()
 
 
-    plt.savefig(fname)
+        # agent predictions
+        plt.subplot(224)
+        plt.plot(np.diagonal(np.array(state.agent_predictions_all)))
+        plt.xlabel("time")
+        plt.ylabel("realistations")
+        plt.tight_layout()
+
+
+        plt.savefig(fname)
+
+
+class ResetWrapper(gym.Wrapper):
+    
+    def __init__(self, env):
+        super().__init__(env)
+
+    def reset(self):
+        # dirty override of a private parameter
+        self.env.param.second_peak_time = np.random.randint(low=10, high=95)
+        return super().reset()
 
 class ObsWrapper(gym.ObservationWrapper):
     """
@@ -118,28 +135,30 @@ def train_rl(env, models_to_train=40, episodes_per_model=100):
     # return final model
     return model
 
+def run_rl(model, env, plot_name):
+    observation = env.reset()
+    done = False
+    while not done:
+        # Specify the action. Check the effect of any fixed policy by specifying the action here:
+        # note: using 'deterministic = True' for evaluation fixes the SAC policy
+        action, _states = model.predict(observation, deterministic=True)
+        observation, reward, done, info = env.step(action)
+    # plot the episode using the modified function (includes realisations at the bottom right)
+    env.plot(plot_name)
+    return
 
 # create the environment, including action/observation adaptations defined above
-env = ActWrapper(ObsWrapper(gym.make("reference_environment:reference-environment-v0")))
-# env = ComboWrapper(env)
+base_env = gym.make("reference_environment:reference-environment-v0")
+env = ResetWrapper(PlotWrapper(ActWrapper(ObsWrapper(base_env))))
 
 # Train an RL agent on the environment
-model = train_rl(env, models_to_train=1, episodes_per_model=200)
+model = train_rl(env, models_to_train=1, episodes_per_model=2)
 
-# initialise in a given state
-# Note that this does *not* change the random peak time. We should adapt that.
+# Perform two independent runs
 env.seed(42)
-observation = env.reset()
-done = False
-while not done:
-    # Specify the action. Check the effect of any fixed policy by specifying the action here:
-    # note: using 'deterministic = True' for evaluation fixes the SAC policy
-    action, _states = model.predict(observation, deterministic=True)
-    observation, reward, done, info = env.step(action)
+run_rl(model, env, "agent_run_42.png")
 
-# Plot the episode using the built-in function
-env.plot("agent_run.png")
+env.seed(1234)
+run_rl(model, env, "agent_run_1234.png")
 
-# plot the episode using the modified function (includes realisations at the bottom right)
-plot_v2(env.state, "agentplot_v4.png")
 
