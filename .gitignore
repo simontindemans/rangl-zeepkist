@@ -128,4 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .vscode/settings.json
-agent_run_42.png
+
+# Run results and models
+*.png
+*.zip
