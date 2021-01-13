@@ -151,8 +151,9 @@ def run_rl(model, env, plot_name):
         action, _states = model.predict(observation, deterministic=True)
         observation, reward, done, info = env.step(action)
     # plot the episode using the modified function (includes realisations at the bottom right)
-    env.plot(plot_name)
-    return
+    if plot_name is not None:
+        env.plot(plot_name)
+    return np.sum(env.state.rewards_all)
 
 # create the environment, including action/observation adaptations defined above
 base_env = gym.make("reference_environment:reference-environment-v0")
@@ -162,10 +163,17 @@ env = ResetWrapper(PlotWrapper(ActWrapper(ObsWrapper(base_env))))
 model = train_rl(env, models_to_train=1, episodes_per_model=500)
 
 # Perform two independent runs
-env.seed(42)
-run_rl(model, env, "agent_run_42.png")
+run_rl(model, env, "agent_run_1.png")
+run_rl(model, env, "agent_run_2.png")
 
-env.seed(1234)
-run_rl(model, env, "agent_run_1234.png")
+# collect results over 50 independent runs, display summary statistics
+result_list = np.zeros(50)
+for i in range(len(result_list)):
+    result_list[i] = run_rl(model, env, None)
 
+print(f"Summary of 50 results:")
+print(f"Mean: {np.mean(result_list)}")
+print(f"Std: {np.std(result_list)}")
+print(f"Min: {np.min(result_list)}")
+print(f"Max: {np.max(result_list)}")
 
