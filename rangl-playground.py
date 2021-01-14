@@ -64,20 +64,6 @@ class PlotWrapper(gym.Wrapper):
         plt.savefig(fname)
 
 
-class ResetWrapper(gym.Wrapper):
-    """
-    Wrapper that modifies the reset() function to randomise the second peak.
-    """
-    
-    def __init__(self, env):
-        super().__init__(env)
-
-    def reset(self):
-        # dirty override of a private parameter
-        # this creates an instance variable instead of the class variable in Parameters()
-        self.env.param.second_peak_time = np.random.randint(low=10, high=95)
-        return super().reset()
-
 class ObsWrapper(gym.ObservationWrapper):
     """
     Wrapper for observations.
@@ -157,10 +143,10 @@ def run_rl(model, env, plot_name):
 
 # create the environment, including action/observation adaptations defined above
 base_env = gym.make("reference_environment:reference-environment-v0")
-env = ResetWrapper(PlotWrapper(ActWrapper(ObsWrapper(base_env))))
+env = PlotWrapper(ActWrapper(ObsWrapper(base_env)))
 
 # Train an RL agent on the environment
-model = train_rl(env, models_to_train=1, episodes_per_model=500)
+model = train_rl(env, models_to_train=1, episodes_per_model=200)
 
 # Perform two independent runs
 run_rl(model, env, "agent_run_1.png")
