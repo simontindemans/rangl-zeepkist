@@ -64,6 +64,46 @@ class PlotWrapper(gym.Wrapper):
         plt.savefig(fname)
 
 
+class EfficientObsWrapper(gym.ObservationWrapper):
+    """
+    Wrapper for observations.
+
+    Modifies the observation vector so that the forecast part (values 3:obs_length+3) consists of the current value and 
+    immediate forecast, padded with repeats of the final element if necessary. This should make the policy time-invariant.
+    """
+
+    def __init__(self, env, obs_length=25):
+        super().__init__(env)
+        assert(1 <= obs_length <= self.env.param.steps_per_episode,\
+            f"Observation length {obs_length} is outside the permissible range (1, {self.env.param.steps_per_episode})")
+        self.obs_length = obs_length
+        self.observation_space = self._obs_space()
+
+    def observation(self, observation):
+        obs_header = observation[0:3]
+        # take only the part from t until the future
+        # repeat the final element so that we do not run out of observations when t=96
+        obs_forecast = observation[obs_header[0] + 3 + 1 : ] + (observation[-1],)
+        # pad the forecast with copies of the final value (create an array of size 97)
+        padding_required = self.env.param.steps_per_episode + 1 - len(obs_forecast)
+        padded_forecast = np.pad(obs_forecast, (0,padding_required), 'edge')
+        # return an observation vector of the same length
+        return obs_header + tuple(padded_forecast)[:self.obs_length]
+
+    def _obs_space(self):
+        # modified from the base environment to restrict the observation length
+        obs_low = np.full(self.obs_length + 3, -1000, dtype=np.float32) # last 'obs_length' entries of observation are the predictions
+        obs_low[0] = -1	# first entry of obervation is the timestep
+        obs_low[1] = self.env.param.generator_1_min	# min level of generator 1 
+        obs_low[2] = self.env.param.generator_2_min	# min level of generator 2
+        obs_high = np.full(self.obs_length + 3, 1000, dtype=np.float32) # last 96 entries of observation are the predictions
+        obs_high[0] = self.env.param.steps_per_episode	# first entry of obervation is the timestep
+        obs_low[1] = self.env.param.generator_1_max	# max level of generator 1 
+        obs_low[2] = self.env.param.generator_2_max	# max level of generator 2
+        result = gym.spaces.Box(obs_low, obs_high, dtype=np.float32)
+        return result
+
+
 class ObsWrapper(gym.ObservationWrapper):
     """
     Wrapper for observations.
@@ -143,7 +183,7 @@ def run_rl(model, env, plot_name):
 
 # create the environment, including action/observation adaptations defined above
 base_env = gym.make("reference_environment:reference-environment-v0")
-env = PlotWrapper(ActWrapper(ObsWrapper(base_env)))
+env = PlotWrapper(ActWrapper(EfficientObsWrapper(base_env, obs_length=25)))
 
 # Train an RL agent on the environment
 model = train_rl(env, models_to_train=1, episodes_per_model=200)
