@@ -56,8 +56,10 @@ class PlotWrapper(gym.Wrapper):
         # agent predictions
         plt.subplot(224)
         plt.plot(np.diagonal(np.array(state.agent_predictions_all)))
+        plt.plot(np.array(state.generator_1_levels_all) + np.array(state.generator_2_levels_all))
+        plt.plot(np.array(state.generator_1_levels_all) + np.array(state.generator_2_levels_all) - np.diagonal(np.array(state.agent_predictions_all)))
         plt.xlabel("time")
-        plt.ylabel("realistations")
+        plt.ylabel("realised demand and supply, mismatch")
         plt.tight_layout()
 
 
@@ -186,7 +188,7 @@ base_env = gym.make("reference_environment:reference-environment-v0")
 env = PlotWrapper(ActWrapper(EfficientObsWrapper(base_env, obs_length=25)))
 
 # Train an RL agent on the environment
-model = train_rl(env, models_to_train=1, episodes_per_model=200)
+model = train_rl(env, models_to_train=1, episodes_per_model=500)
 
 # Perform two independent runs
 run_rl(model, env, "agent_run_1.png")
