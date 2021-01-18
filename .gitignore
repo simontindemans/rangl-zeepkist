@@ -132,3 +132,6 @@ dmypy.json
 # Run results and models
 *.png
 *.zip
+
+# system files
+.DS_Store
