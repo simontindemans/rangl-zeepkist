@@ -10,6 +10,8 @@ from stable_baselines3.sac import MlpPolicy
 import numpy as np
 import matplotlib.pyplot as plt
 
+import provided.util as util
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -188,20 +190,27 @@ base_env = gym.make("reference_environment:reference-environment-v0")
 env = PlotWrapper(ActWrapper(EfficientObsWrapper(base_env, obs_length=25)))
 
 # Train an RL agent on the environment
-model = train_rl(env, models_to_train=1, episodes_per_model=500)
+agent = train_rl(env, models_to_train=1, episodes_per_model=500)
 
 # Perform two independent runs
-run_rl(model, env, "agent_run_1.png")
-run_rl(model, env, "agent_run_2.png")
+run_rl(agent, env, "agent_run_1.png")
+run_rl(agent, env, "agent_run_2.png")
 
 # collect results over 50 independent runs, display summary statistics
 result_list = np.zeros(50)
 for i in range(len(result_list)):
-    result_list[i] = run_rl(model, env, None)
+    result_list[i] = run_rl(agent, env, None)
 
 print(f"Summary of 50 results:")
 print(f"Mean: {np.mean(result_list)}")
 print(f"Std: {np.std(result_list)}")
 print(f"Min: {np.min(result_list)}")
 print(f"Max: {np.max(result_list)}")
+
+evaluate = util.Evaluate(env, agent)
+seeds = evaluate.read_seeds(fname="provided/seeds.csv")
+mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+
+print('Mean reward:',mean_reward)
+
 
