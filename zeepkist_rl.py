@@ -6,7 +6,7 @@ from stable_baselines3 import SAC
 from stable_baselines3.sac import MlpPolicy
 
 
-def train_SAC(env, models_to_train=1, episodes_per_model=100, **kwargs):
+def train(env, models_to_train=1, episodes_per_model=100, **kwargs):
     """
     RL training function. 
     """

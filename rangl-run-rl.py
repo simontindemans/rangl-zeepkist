@@ -10,12 +10,11 @@ import provided.util as util
 # own modules
 import envwrapper
 import zeepkist_rl
+import zeepkist_mpc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
 
 
 def run_episode(env, agent, plot_name = None):
@@ -34,9 +33,10 @@ def run_episode(env, agent, plot_name = None):
 # create the environment, including action/observation adaptations defined in the envwrapper module
 base_env = gym.make("reference_environment:reference-environment-v0")
 env = envwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapper(base_env, obs_length=25)))
+#env = envwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, obs_length=25))
 
-# Train an RL agent on the environment
-agent = zeepkist_rl.train_SAC(env, episodes_per_model=10, verbose=1, gamma=0.9)
+# Train an agent on the environment
+agent = zeepkist_rl.train(env, episodes_per_model=500, verbose=1, gamma=0.85)
 
 # Perform two independent runs
 run_episode(env, agent, "agent_run_1.png")
