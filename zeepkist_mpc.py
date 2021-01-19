@@ -35,33 +35,34 @@ class MPC_agent:
         # define objective function
         self.problem.objective = self.env.param.generator_1_cost * pulp.lpSum([self.gen1_vars[i] for i in self.indices]) \
             + self.env.param.generator_2_cost * pulp.lpSum([self.gen2_vars[i] for i in self.indices]) \
-            + self.env.param.imbalance_cost_factor_high * pulp.lpSum([self.imb_plus_vars[i] for i in self.indices]) \
-            + self.env.param.imbalance_cost_factor_low * pulp.lpSum([self.imb_minus_vars[i] for i in self.indices])
+            + self.env.param.imbalance_cost_factor_high * pulp.lpSum([self.imb_minus_vars[i] for i in self.indices]) \
+            + self.env.param.imbalance_cost_factor_low * pulp.lpSum([self.imb_plus_vars[i] for i in self.indices])
 
         # add ramp constraints
         for i in range(len(self.indices) - 1):
-            self.problem += self.gen1_vars[self.indices[i+1]] - self.gen1_vars[self.indices[i+1]] <= self.env.param.ramp_1_max
-            self.problem += self.gen1_vars[self.indices[i+1]] - self.gen1_vars[self.indices[i+1]] >= self.env.param.ramp_1_min
-            self.problem += self.gen2_vars[self.indices[i+1]] - self.gen2_vars[self.indices[i+1]] <= self.env.param.ramp_2_max
-            self.problem += self.gen2_vars[self.indices[i+1]] - self.gen2_vars[self.indices[i+1]] >= self.env.param.ramp_2_min
+            self.problem += self.gen1_vars[self.indices[i+1]] - self.gen1_vars[self.indices[i]] <= self.env.param.ramp_1_max
+            self.problem += self.gen1_vars[self.indices[i+1]] - self.gen1_vars[self.indices[i]] >= self.env.param.ramp_1_min
+            self.problem += self.gen2_vars[self.indices[i+1]] - self.gen2_vars[self.indices[i]] <= self.env.param.ramp_2_max
+            self.problem += self.gen2_vars[self.indices[i+1]] - self.gen2_vars[self.indices[i]] >= self.env.param.ramp_2_min
 
         # define constraints for non-linear costs
         M = 100
         for i, idx in enumerate(self.indices):
-            # link imb_vars to sign indicator imb_plus_ind
+            # define imb_plus_ind as the sign of imb_vars
             self.problem += self.imb_vars[idx] <= M * self.imb_plus_ind[idx]
             self.problem += self.imb_vars[idx] >= -M * (1 - self.imb_plus_ind[idx])
+            # define imb_plus_vars as the positive part of imb_vars
             self.problem += self.imb_plus_vars[idx] >= self.imb_vars[idx]
             self.problem += self.imb_plus_vars[idx] <= self.imb_vars[idx] + M*(1 - self.imb_plus_ind[idx])
             self.problem += self.imb_plus_vars[idx] >= -M * self.imb_plus_ind[idx]
             self.problem += self.imb_plus_vars[idx] <= M * self.imb_plus_ind[idx]
+            # define imb_mins_vars as the negative part of imb_vars
             self.problem += self.imb_minus_vars[idx] == self.imb_plus_vars[idx] - self.imb_vars[idx]
-
-
 
         return
 
     def _add_current_constraints(self, current_gen, forecast):
+        # in this function we use named constraints, which are a bit more fiddly, but they are replaced when the function is called again
 
         # add ramp rates for current time step
         self.problem.constraints['gen1up'] = pulp.LpConstraint(self.gen1_vars[self.indices[0]] - current_gen[0], rhs=self.env.param.ramp_1_max, sense=pulp.LpConstraintLE)
@@ -71,13 +72,14 @@ class MPC_agent:
         
         for i, idx in enumerate(self.indices):
             # identify the actual imbalance, given the inputs
-            self.problem.constraints['imb_'+idx] = pulp.LpConstraint(forecast[i] - self.gen1_vars[idx] - self.gen2_vars[idx] - self.imb_vars[idx], rhs=0, sense=pulp.LpConstraintEQ)
+            self.problem.constraints['imb_'+idx] = pulp.LpConstraint(self.gen1_vars[idx] + self.gen2_vars[idx] - forecast[i] - self.imb_vars[idx], rhs=0, sense=pulp.LpConstraintEQ)
 
         return
 
     def predict(self, obs, deterministic=True, **kwargs):
         
-        self._add_current_constraints((obs[1], obs[2]), obs[3:])
+        # set constraints on the basis of current output and forecast
+        self._add_current_constraints(current_gen=(obs[1], obs[2]), forecast=obs[3:])
 
         # solve the MILP and suppress output
         self.problem.solve(pulp.PULP_CBC_CMD(msg=False))
@@ -85,7 +87,7 @@ class MPC_agent:
         # debug only: log optimality status
      #   print(pulp.LpStatus[self.problem.status])
 
-        # extract t=0 actions
+        # extract t=0 actions for generators
         a1 = self.gen1_vars[self.indices[0]].varValue
         a2 = self.gen2_vars[self.indices[0]].varValue
 
