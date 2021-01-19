@@ -1,14 +1,15 @@
 import logging
-import time
 
 import numpy as np
 import gym
-from stable_baselines3 import SAC
-from stable_baselines3.sac import MlpPolicy
 
+# rangl provided modules
 import reference_environment
 import provided.util as util
+
+# own modules
 import envwrapper
+import zeepkist_rl
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,25 +17,6 @@ logger.setLevel(logging.DEBUG)
 
 
 
-def train_SAC(env, models_to_train=1, episodes_per_model=100, **kwargs):
-    """
-    RL training function. 
-    """
-
-    # using SAC - adjusted gamma to a lower value due to the relatively fast response of the system
-    model = SAC(MlpPolicy, env, **kwargs)
-    start = time.time()
-
-    for i in range(models_to_train):
-        steps_per_model = episodes_per_model * env.param.steps_per_episode
-        model.learn(total_timesteps=steps_per_model)
-        model.save("MODEL_" + str(i))
-
-    end = time.time()
-    print("time (min): ", (end - start) / 60)
-
-    # return final model
-    return model
 
 def run_episode(env, agent, plot_name = None):
     observation = env.reset()
@@ -54,7 +36,7 @@ base_env = gym.make("reference_environment:reference-environment-v0")
 env = envwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapper(base_env, obs_length=25)))
 
 # Train an RL agent on the environment
-agent = train_SAC(env, episodes_per_model=10, verbose=1, gamma=0.9)
+agent = zeepkist_rl.train_SAC(env, episodes_per_model=10, verbose=1, gamma=0.9)
 
 # Perform two independent runs
 run_episode(env, agent, "agent_run_1.png")
