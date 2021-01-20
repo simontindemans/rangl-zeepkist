@@ -17,8 +17,8 @@ class MPC_agent:
 
         self.env = env
 
-        self.obs_length = env.obs_length
-        self.indices = [str(i) for i in range(self.obs_length)]
+        self.forecast_length = env.forecast_length
+        self.indices = [str(i) for i in range(self.forecast_length)]
 
         self.gen1_vars = pulp.LpVariable.dicts(name="gen1", indexs=self.indices, 
                                                 lowBound=env.param.generator_1_min, upBound=env.param.generator_1_max)
@@ -29,7 +29,7 @@ class MPC_agent:
         self.imb_plus_vars = pulp.LpVariable.dicts(name="imb_plus", indexs=self.indices, lowBound=0)
         self.imb_minus_vars = pulp.LpVariable.dicts(name="imb_minus", indexs=self.indices, lowBound=0)
 
-        self.problem = pulp.LpProblem(name="dispatch-problem", sense=LpMinimize)
+        self.problem = pulp.LpProblem(name="dispatch-problem", sense=pulp.constants.LpMinimize)
 
         # define objective function
         # TODO: cut off at end of horizon - it may make a tiny difference

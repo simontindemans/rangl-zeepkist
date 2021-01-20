@@ -32,8 +32,8 @@ def run_episode(env, agent, plot_name = None):
 
 # create the environment, including action/observation adaptations defined in the envwrapper module
 base_env = gym.make("reference_environment:reference-environment-v0")
-# env = envwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapper(base_env, obs_length=25)))
-env = envwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, obs_length=25))
+# env = envwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_length=25)))
+env = envwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_length=25))
 
 # Train an RL agent on the environment
 agent = zeepkist_mpc.train(env, episodes_per_model=500, verbose=1, gamma=0.85)
