@@ -2,10 +2,6 @@
 import pulp
 import numpy as np
 
-# only indirectly needed
-import gym
-import reference_environment
-
 def train(env, **kwargs):
     # do nothing; included for compatibility with RL agent
     return MPC_agent(env)

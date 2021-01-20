@@ -10,7 +10,6 @@ import provided.util as util
 # own modules
 import envwrapper
 import zeepkist_rl
-import zeepkist_mpc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
