@@ -4,7 +4,6 @@ import numpy as np
 
 # only indirectly needed
 import gym
-from pulp.constants import LpConstraintLE, LpMinimize, LpStatus
 import reference_environment
 
 def train(env, **kwargs):
@@ -33,6 +32,7 @@ class MPC_agent:
         self.problem = pulp.LpProblem(name="dispatch-problem", sense=LpMinimize)
 
         # define objective function
+        # TODO: cut off at end of horizon - it may make a tiny difference
         self.problem.objective = self.env.param.generator_1_cost * pulp.lpSum([self.gen1_vars[i] for i in self.indices]) \
             + self.env.param.generator_2_cost * pulp.lpSum([self.gen2_vars[i] for i in self.indices]) \
             + self.env.param.imbalance_cost_factor_high * pulp.lpSum([self.imb_minus_vars[i] for i in self.indices]) \
