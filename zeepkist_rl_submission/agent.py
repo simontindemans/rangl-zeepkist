@@ -1,6 +1,9 @@
 import os
 
-from stable_baselines3 import PPO
+from stable_baselines3 import SAC
+import rangl_model
+import envwrapper
+
 
 from util import Client
 
@@ -23,14 +26,16 @@ client.env_monitor_start(
     video_callable=False,
 )
 
-model = PPO.load("MODEL_0")
+env_model = rangl_model.SkeletonEnvironment(forecast_length=25)
+agent = SAC.load("MODEL_0")
 
 observation = client.env_reset(instance_id)
 
 print(observation)
 
 while True:
-    action, _ = model.predict(observation, deterministic=True)
+    action, _ = agent.predict(envwrapper.obs_transform(observation, env_model), deterministic=True)
+    action = envwrapper.act_transform(action, env_model, observation[1:3])
     action = [float(action[0]), float(action[1])]
     observation, reward, done, info = client.env_step(instance_id, action)
     print(instance_id, reward)

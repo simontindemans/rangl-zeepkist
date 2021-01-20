@@ -1,6 +1,8 @@
 import os
 
-from stable_baselines3 import PPO
+import zeepkist_mpc
+import rangl_model
+import envwrapper
 
 from util import Client
 
@@ -23,14 +25,17 @@ client.env_monitor_start(
     video_callable=False,
 )
 
-model = PPO.load("MODEL_0")
+env_model = rangl_model.SkeletonEnvironment(forecast_length=25)
+agent = zeepkist_mpc.MPC_agent(env=env_model)
 
 observation = client.env_reset(instance_id)
 
 print(observation)
 
 while True:
-    action, _ = model.predict(observation, deterministic=True)
+    action, _ = agent.predict(envwrapper.obs_transform(observation, env_model), deterministic=True)
+    # not required for MPC agent, but used for RL agent
+    # action = envwrapper.act_transform(action, env_model, observation[1:3])
     action = [float(action[0]), float(action[1])]
     observation, reward, done, info = client.env_step(instance_id, action)
     print(instance_id, reward)
