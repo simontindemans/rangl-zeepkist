@@ -1,4 +1,4 @@
-TAG = zeepkist_rl
+TAG = v1.0.0
 
 build:
-	docker build -t submission:${TAG} .
+	docker build -t zeepkist_rl:${TAG} .

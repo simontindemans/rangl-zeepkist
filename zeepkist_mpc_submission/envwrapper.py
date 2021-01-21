@@ -1,5 +1,4 @@
 import gym
-
 import numpy as np
 
 def obs_transform(observation, env_model):

@@ -129,10 +129,6 @@ dmypy.json
 .pyre/
 .vscode/settings.json
 
-# Run results and models
-*.png
-*.zip
-
 # system files
 .DS_Store
 workspace.code-workspace

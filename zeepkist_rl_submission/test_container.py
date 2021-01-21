@@ -24,7 +24,7 @@ seeds = read_seeds()
 scores = []
 for seed in seeds:
     submission = client.containers.run(
-        image="submission:zeepkist_rl",
+        image="zeepkist_rl:v1.0.0",
         name="agent",
         network="local_rangl",
         detach=False,
