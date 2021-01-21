@@ -18,7 +18,7 @@ def train(env, models_to_train=1, episodes_per_model=100, **kwargs):
     for i in range(models_to_train):
         steps_per_model = episodes_per_model * env.param.steps_per_episode
         model.learn(total_timesteps=steps_per_model)
-        model.save("MODEL_" + str(i))
+        model.save("output/MODEL_" + str(i))
 
     end = time.time()
     print("time (min): ", (end - start) / 60)
