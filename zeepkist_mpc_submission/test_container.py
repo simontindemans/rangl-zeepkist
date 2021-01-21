@@ -24,11 +24,11 @@ seeds = read_seeds()
 scores = []
 for seed in seeds:
     submission = client.containers.run(
-        image="zeepkist_mpc:v1.0.0",
+        image="zeepkist_mpc:v1.0.3",
         name="agent",
         network="local_rangl",
         detach=False,
-        auto_remove=True,
+        auto_remove=True, # this must be False for debugging
         # command="sleep infinity",  # debug
         environment={
             "RANGL_SEED": seed,

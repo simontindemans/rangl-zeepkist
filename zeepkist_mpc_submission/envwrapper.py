@@ -2,12 +2,16 @@ import gym
 import numpy as np
 
 def obs_transform(observation, env_model):
-    obs_header = observation[0:3]
+    # explicit mapping to tuple, to deal with local/online platform differences
+    obs_tuple = tuple(observation)
+    obs_header = obs_tuple[0:3]
+    # get the current time (minus one) and map it to an integer
+    current_time = int(round(obs_header[0]))
     # take only the part from t until the future
     # repeat the final element so that we do not run out of observations when t=96
-    obs_forecast = observation[obs_header[0] + 3 + 1 : ] + (observation[-1],)
+    obs_forecast = obs_tuple[3 + current_time + 1 : ] + (observation[-1],)
     # pad the forecast with copies of the final value (create an array of size 97)
-    padding_required = len(observation) -3 + 1 - len(obs_forecast)
+    padding_required = len(obs_tuple) -3 + 1 - len(obs_forecast)
     padded_forecast = np.pad(obs_forecast, (0,padding_required), 'edge')
     # return an observation vector of the same length
     return obs_header + tuple(padded_forecast)[:env_model.forecast_length]

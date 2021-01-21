@@ -28,7 +28,7 @@ for seed in seeds:
         name="agent",
         network="local_rangl",
         detach=False,
-        auto_remove=True,
+        auto_remove=True, # must set to False to see stderr output for debugging
         # command="sleep infinity",  # debug
         environment={
             "RANGL_SEED": seed,
