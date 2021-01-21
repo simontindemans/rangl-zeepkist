@@ -1,7 +1,5 @@
 import gym
-
 import numpy as np
-import matplotlib.pyplot as plt
 
 def obs_transform(observation, env_model):
     obs_header = observation[0:3]
@@ -20,56 +18,6 @@ def act_transform(action, env_model, current_gen_level):
     a1 = current_gen_level[0] + offset_1
     a2 = current_gen_level[1] + offset_2
     return (a1, a2)
-
-class PlotWrapper(gym.Wrapper):
-    """
-    Wrapper that modifies the plot function to show realised instead of forecast values in the bottom right.
-    """
-
-    def __init__(self, env):
-        super().__init__(env)
-        
-    def plot(self, fname):
-        state = self.state
-
-        fig, ax = plt.subplots(2, 2)
-
-        # cumulative total cost
-        plt.subplot(221)
-        plt.plot(np.cumsum(state.rewards_all))
-        plt.xlabel("time")
-        plt.ylabel("cumulative reward")
-        plt.tight_layout()
-        # could be expanded to include individual components of the reward
-
-        # generator levels
-        plt.subplot(222)
-        plt.plot(np.array(state.generator_1_levels_all))
-        plt.plot(np.array(state.generator_2_levels_all))
-        plt.xlabel("time")
-        plt.ylabel("generator levels")
-        plt.tight_layout()
-
-
-        # actions
-        plt.subplot(223)
-        plt.plot(np.array(state.actions_all))
-        plt.xlabel("time")
-        plt.ylabel("actions")
-        plt.tight_layout()
-
-
-        # agent predictions
-        plt.subplot(224)
-        plt.plot(np.diagonal(np.array(state.agent_predictions_all)))
-        plt.plot(np.array(state.generator_1_levels_all) + np.array(state.generator_2_levels_all))
-        plt.plot(np.array(state.generator_1_levels_all) + np.array(state.generator_2_levels_all) - np.diagonal(np.array(state.agent_predictions_all)))
-        plt.xlabel("time")
-        plt.ylabel("realised demand and supply, mismatch")
-        plt.tight_layout()
-
-
-        plt.savefig(fname)
 
 
 class EfficientObsWrapper(gym.ObservationWrapper):

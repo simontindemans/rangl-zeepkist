@@ -9,6 +9,7 @@ import provided.util as util
 
 # own modules
 import envwrapper
+import plotwrapper
 import zeepkist_mpc
 
 logging.basicConfig(level=logging.INFO)
@@ -31,8 +32,7 @@ def run_episode(env, agent, plot_name = None):
 
 # create the environment, including action/observation adaptations defined in the envwrapper module
 base_env = gym.make("reference_environment:reference-environment-v0")
-# env = envwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_length=25)))
-env = envwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_length=25))
+env = plotwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_length=25))
 
 # Train an RL agent on the environment
 agent = zeepkist_mpc.train(env, episodes_per_model=500, verbose=1, gamma=0.85)
@@ -53,7 +53,7 @@ print(f"Min: {np.min(result_list)}")
 print(f"Max: {np.max(result_list)}")
 
 evaluate = util.Evaluate(env, agent)
-seeds = evaluate.read_seeds(fname="provided/seeds.csv")
+seeds = evaluate.read_seeds(fname="development/provided/seeds.csv")
 mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
 
 print('Mean reward:',mean_reward)
