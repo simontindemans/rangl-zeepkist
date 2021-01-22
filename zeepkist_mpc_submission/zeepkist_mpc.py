@@ -6,6 +6,7 @@ def train(env, **kwargs):
     # do nothing; included for compatibility with RL agent
     return MPC_agent(env)
 
+
 class MPC_agent:
 
     def __init__(self, env):
@@ -25,13 +26,6 @@ class MPC_agent:
         self.imb_minus_vars = pulp.LpVariable.dicts(name="imb_minus", indexs=self.indices, lowBound=0)
 
         self.problem = pulp.LpProblem(name="dispatch-problem", sense=pulp.constants.LpMinimize)
-
-        # define objective function
-        # TODO: cut off at end of horizon - it may make a tiny difference
-        self.problem.objective = self.env.param.generator_1_cost * pulp.lpSum([self.gen1_vars[i] for i in self.indices]) \
-            + self.env.param.generator_2_cost * pulp.lpSum([self.gen2_vars[i] for i in self.indices]) \
-            + self.env.param.imbalance_cost_factor_high * pulp.lpSum([self.imb_minus_vars[i] for i in self.indices]) \
-            + self.env.param.imbalance_cost_factor_low * pulp.lpSum([self.imb_plus_vars[i] for i in self.indices])
 
         # add ramp constraints
         for i in range(len(self.indices) - 1):
@@ -56,7 +50,21 @@ class MPC_agent:
 
         return
 
-    def _add_current_constraints(self, current_gen, forecast):
+    def _add_current_constraints(self, current_gen, forecast, steps_in_objective=None):
+
+        # if steps_in_objective is given, use only a subset of terms in the objective function
+        if steps_in_objective is None:
+            objective_indices = self.indices
+        else:
+            assert steps_in_objective <= len(forecast), f"steps_in_objective={steps_in_objective} should be <= {len(forecast)}"
+            objective_indices = [self.indices[i] for i in range(steps_in_objective)]
+
+        # define objective function
+        self.problem.objective = self.env.param.generator_1_cost * pulp.lpSum([self.gen1_vars[i] for i in objective_indices]) \
+            + self.env.param.generator_2_cost * pulp.lpSum([self.gen2_vars[i] for i in objective_indices]) \
+            + self.env.param.imbalance_cost_factor_high * pulp.lpSum([self.imb_minus_vars[i] for i in objective_indices]) \
+            + self.env.param.imbalance_cost_factor_low * pulp.lpSum([self.imb_plus_vars[i] for i in objective_indices])
+
         # in this function we use named constraints, which are a bit more fiddly, but they are replaced when the function is called again
 
         # add ramp rates for current time step
@@ -73,14 +81,15 @@ class MPC_agent:
 
     def predict(self, obs, deterministic=True, **kwargs):
         
+        # get the current time (minus one) and map it to an integer
+        current_time = int(round(obs[0]))   
+        actual_forecast_length = min(self.env.forecast_length, self.env.param.steps_per_episode - current_time - 1)
+
         # set constraints on the basis of current output and forecast
-        self._add_current_constraints(current_gen=(obs[1], obs[2]), forecast=obs[3:])
+        self._add_current_constraints(current_gen=(obs[1], obs[2]), forecast=obs[3:], steps_in_objective=actual_forecast_length)
 
         # solve the MILP and suppress output
         self.problem.solve(pulp.PULP_CBC_CMD(msg=False))
-
-        # debug only: log optimality status
-     #   print(pulp.LpStatus[self.problem.status])
 
         # extract t=0 actions for generators
         a1 = self.gen1_vars[self.indices[0]].varValue
