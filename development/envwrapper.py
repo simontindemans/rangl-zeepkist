@@ -2,19 +2,19 @@ import gym
 import numpy as np
 
 def obs_transform(observation, env_model):
-    # explicit mapping to tuple, to deal with local/online platform differences
-    obs_tuple = tuple(observation)
-    obs_header = obs_tuple[0:3]
-    # get the current time (minus one) and map it to an integer
+    # explicit mapping to list, to deal with local/online platform differences
+    obs_list = list(observation)
+    obs_header = obs_list[0:3]
+    # get the current time (starting from minus one) and map it to an integer
     current_time = int(round(obs_header[0]))
-    # take only the part from t until the future
-    # repeat the final element so that we do not run out of observations when t=96
-    obs_forecast = obs_tuple[3 + current_time + 1 : ] + (observation[-1],)
+    # take only the part that is an actual forecast (larger than t)
+    # repeat the final element so that we do not run out of observations when t=95 (final invocation after the last action)
+    obs_forecast = obs_list[3 + current_time + 1 : ] + [observation[-1]]
     # pad the forecast with copies of the final value (create an array of size 97)
-    padding_required = len(obs_tuple) -3 + 1 - len(obs_forecast)
+    padding_required = (len(obs_list) - 3) + 1 - len(obs_forecast)
     padded_forecast = np.pad(obs_forecast, (0,padding_required), 'edge')
     # return an observation vector of the same length
-    return obs_header + tuple(padded_forecast)[:env_model.forecast_length]
+    return obs_header + list(padded_forecast)[:env_model.forecast_length]
 
 def act_transform(action, env_model, current_gen_level):
     offset_1 = action[0]*env_model.param.ramp_1_max if action[0] >= 0 else - action[0]*env_model.param.ramp_1_min
@@ -34,8 +34,8 @@ class EfficientObsWrapper(gym.ObservationWrapper):
 
     def __init__(self, env, forecast_length=25):
         super().__init__(env)
-        assert(1 <= forecast_length <= self.env.param.steps_per_episode,\
-            f"Observation length {forecast_length} is outside the permissible range (1, {self.env.param.steps_per_episode})")
+        assert 1 <= forecast_length <= self.env.param.steps_per_episode,\
+            f"Observation length {forecast_length} is outside the permissible range (1, {self.env.param.steps_per_episode})"
         self.forecast_length = forecast_length
         self.observation_space = self._obs_space()
 
