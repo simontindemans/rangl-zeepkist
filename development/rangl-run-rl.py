@@ -37,7 +37,7 @@ env = plotwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapp
 # set a default seed for reproducible training
 np.random.seed(987654321)
 # Train an agent on the environment
-agent = zeepkist_rl.train(env, episodes_per_model=1000, verbose=1, gamma=0.85)
+agent = zeepkist_rl.train(env, episodes_per_model=5000, verbose=1, gamma=0.85)
 
 # Perform two independent runs
 run_episode(env, agent, "output/agent_run_RL_1.png")
