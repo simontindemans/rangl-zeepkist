@@ -6,6 +6,7 @@ RangL Jan 2021 challenge: http://challenge1-rangl.uksouth.cloudapp.azure.com:888
 ## Usage instructions:
 * Set up a new python environment
 * Download and install the repository from https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021 
+* Run the following scripts from the ``rangl-zeepkist`` root directory
 * *Optionally* run ``development/train-rl.py`` to train the RL agent
 * Run the ``development/evaluate-*.py`` scripts to evaluate the performance of the agents
 
