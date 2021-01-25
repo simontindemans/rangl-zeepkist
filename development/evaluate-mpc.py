@@ -1,5 +1,13 @@
-import logging
+# -*- coding: utf-8 -*-
+"""
+Target: python 3.8
+@author: Simon Tindemans
+Delft University of Technology
+s.h.tindemans@tudelft.nl
+"""
+# SPDX-License-Identifier: MIT
 
+import logging
 import numpy as np
 import gym
 
@@ -38,24 +46,27 @@ env = plotwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_
 agent = zeepkist_mpc.train(env, episodes_per_model=500, verbose=1, gamma=0.85)
 
 # Perform two independent runs
+print(f"Generating plots for two sample runs...")
 run_episode(env, agent, "output/agent_run_MPC_1.png")
 run_episode(env, agent, "output/agent_run_MPC_2.png")
 
 # collect results over 50 independent runs, display summary statistics
+print(f"\nGenerating results for 50 random runs...")
 result_list = np.zeros(50)
 for i in range(len(result_list)):
     result_list[i] = run_episode(env, agent)
 
-print(f"Summary of 50 results:")
+print(f"Summary statistics of 50 runs:")
 print(f"Mean: {np.mean(result_list)}")
 print(f"Std: {np.std(result_list)}")
 print(f"Min: {np.min(result_list)}")
 print(f"Max: {np.max(result_list)}")
 
+# evaluate mean performance on competition seeds
 evaluate = util.Evaluate(env, agent)
 seeds = evaluate.read_seeds(fname="development/provided/seeds.csv")
 mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
 
-print('Mean reward:',mean_reward)
+print('\nFull phase mean reward:',mean_reward)
 
 

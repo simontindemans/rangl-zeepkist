@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Target: python 3.8
+@author: Simon Tindemans
+Delft University of Technology
+s.h.tindemans@tudelft.nl
+"""
+# SPDX-License-Identifier: MIT
 
 import pulp
 import numpy as np

@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+Target: python 3.8
+@author: Simon Tindemans
+Delft University of Technology
+s.h.tindemans@tudelft.nl
+"""
+# SPDX-License-Identifier: MIT
+
 import logging
 import csv
 import numpy as np
@@ -52,8 +61,6 @@ class EvaluateClairvoyant:
             rewards.append(- min_cost)
         return np.mean(rewards)
 
-
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -65,10 +72,11 @@ env = plotwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_
 # Initialise MPC agent
 agent = zeepkist_mpc.MPC_agent(env)
 
+# evaluate mean performance on competition seeds
 evaluate = EvaluateClairvoyant(env, agent)
 seeds = evaluate.read_seeds(fname="development/provided/seeds.csv")
 mean_reward = evaluate.clairvoyant_agent(seeds)
 
-print('Mean reward:',mean_reward)
+print('Full phase mean reward:',mean_reward)
 
 

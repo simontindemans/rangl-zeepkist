@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Target: python 3.8
+@author: Simon Tindemans
+Delft University of Technology
+s.h.tindemans@tudelft.nl
+"""
+# SPDX-License-Identifier: MIT
 
 import pulp
 import numpy as np
@@ -97,3 +105,12 @@ class MPC_agent:
 
         return (a1, a2), None
 
+    def full_solution(self, obs):
+
+        # set constraints on the basis of current output and forecast
+        self._add_current_constraints(current_gen=(obs[1], obs[2]), forecast=obs[3:], steps_in_objective=self.env.forecast_length)
+
+        # solve the MILP and suppress output
+        self.problem.solve(pulp.PULP_CBC_CMD(msg=False))
+
+        return pulp.value(self.problem.objective)

@@ -1,16 +1,47 @@
-import logging
+# -*- coding: utf-8 -*-
+"""
+Target: python 3.8
+@author: Simon Tindemans
+Delft University of Technology
+s.h.tindemans@tudelft.nl
+"""
+# SPDX-License-Identifier: MIT
 
+import logging
+import time
 import numpy as np
 import gym
 
+from stable_baselines3 import SAC
+from stable_baselines3.sac import MlpPolicy
+
 # rangl provided modules
 import reference_environment
-import provided.util as util
 
 # own modules
 import envwrapper
 import plotwrapper
-import zeepkist_rl
+
+
+def train(env, models_to_train=1, episodes_per_model=100, **kwargs):
+    """
+    RL training function. 
+    """
+
+    # using SAC - adjusted gamma to a lower value due to the relatively fast response of the system
+    model = SAC(MlpPolicy, env, **kwargs)
+    start = time.time()
+
+    for i in range(models_to_train):
+        steps_per_model = episodes_per_model * env.param.steps_per_episode
+        model.learn(total_timesteps=steps_per_model)
+        model.save("output/MODEL_" + str(i))
+
+    end = time.time()
+    print("time (min): ", (end - start) / 60)
+
+    # return final model
+    return model
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,27 +68,4 @@ env = plotwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapp
 # set a default seed for reproducible training
 np.random.seed(987654321)
 # Train an agent on the environment
-agent = zeepkist_rl.train(env, episodes_per_model=5000, verbose=1, gamma=0.85)
-
-# Perform two independent runs
-run_episode(env, agent, "output/agent_run_RL_1.png")
-run_episode(env, agent, "output/agent_run_RL_2.png")
-
-# collect results over 50 independent runs, display summary statistics
-result_list = np.zeros(50)
-for i in range(len(result_list)):
-    result_list[i] = run_episode(env, agent)
-
-print(f"Summary of 50 results:")
-print(f"Mean: {np.mean(result_list)}")
-print(f"Std: {np.std(result_list)}")
-print(f"Min: {np.min(result_list)}")
-print(f"Max: {np.max(result_list)}")
-
-evaluate = util.Evaluate(env, agent)
-seeds = evaluate.read_seeds(fname="development/provided/seeds.csv")
-mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
-
-print('Mean reward:',mean_reward)
-
-
+agent = train(env, episodes_per_model=5000, verbose=1, gamma=0.85)

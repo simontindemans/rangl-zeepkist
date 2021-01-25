@@ -1,4 +1,13 @@
-# FROM env.py - copy of model parameters
+# -*- coding: utf-8 -*-
+"""
+Target: python 3.8
+@author: Simon Tindemans
+Delft University of Technology
+s.h.tindemans@tudelft.nl
+"""
+# SPDX-License-Identifier: MIT
+
+# ADAPTED FROM env.py - copy of model parameters
 
 class Parameters:
     # (Avoid sampling random variables here: they would not be resampled upon reset())

@@ -1,0 +1,6 @@
+pandas
+numpy
+gym
+stable-baselines3==0.10.0
+matplotlib
+pulp
