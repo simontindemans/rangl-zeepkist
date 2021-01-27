@@ -10,6 +10,7 @@ s.h.tindemans@tudelft.nl
 import logging
 import numpy as np
 import gym
+import pathlib
 
 # rangl provided modules
 import reference_environment
@@ -47,8 +48,9 @@ agent = zeepkist_mpc.train(env, episodes_per_model=500, verbose=1, gamma=0.85)
 
 # Perform two independent runs
 print(f"Generating plots for two sample runs...")
-run_episode(env, agent, "output/agent_run_MPC_1.png")
-run_episode(env, agent, "output/agent_run_MPC_2.png")
+outputdir = pathlib.Path(__file__).parents[1] / "output"
+run_episode(env, agent, outputdir / "agent_run_MPC_1.png")
+run_episode(env, agent, outputdir / "agent_run_MPC_2.png")
 
 # collect results over 50 independent runs, display summary statistics
 print(f"\nGenerating results for 50 random runs...")
@@ -64,7 +66,9 @@ print(f"Max: {np.max(result_list)}")
 
 # evaluate mean performance on competition seeds
 evaluate = util.Evaluate(env, agent)
-seeds = evaluate.read_seeds(fname="development/provided/seeds.csv")
+# get path to file with seeds
+seedfile = pathlib.Path(__file__).parents[0] / "provided/seeds.csv"
+seeds = evaluate.read_seeds(fname=seedfile)
 mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
 
 print('\nFull phase mean reward:',mean_reward)

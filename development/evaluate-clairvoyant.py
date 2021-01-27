@@ -11,6 +11,7 @@ import logging
 import csv
 import numpy as np
 import gym
+import pathlib
 
 # rangl provided modules
 import reference_environment
@@ -74,7 +75,9 @@ agent = zeepkist_mpc.MPC_agent(env)
 
 # evaluate mean performance on competition seeds
 evaluate = EvaluateClairvoyant(env, agent)
-seeds = evaluate.read_seeds(fname="development/provided/seeds.csv")
+# get path to file with seeds
+seedfile = pathlib.Path(__file__).parents[0] / "provided/seeds.csv"
+seeds = evaluate.read_seeds(fname=seedfile)
 mean_reward = evaluate.clairvoyant_agent(seeds)
 
 print('Full phase mean reward:',mean_reward)
