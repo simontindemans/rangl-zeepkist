@@ -35,7 +35,7 @@ The MPC agent (v1.1.0) minimises, at each time step, the system cost across the 
 The clairvoyant agent is only included to compute a lower bound to the cost that is possible with perfect information. It first completes the episode using a constant dispatch, and uses the realised demand trace to the minimum dispatch cost in hindsight. As it is a 'cheating' agent, it can only be run locally and was not submitted to the challenge. 
 
 ## Submitted agents
-Submitted agents are in the ``submission`` directory. Testing and submitting these agents requires the installation of Docker. Ensure that the local Docker environment makes sufficient memory available (at least 4GB). 
+Submitted agents are in the ``submissions`` directory. Testing and submitting these agents requires the installation of Docker. Ensure that the local Docker environment makes sufficient memory available (at least 4GB). 
 
 ## License
 All code is released under the MIT license. Portions of the code are based on the [RangL Generation scheduling challenge January 2021 repository](https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021), released (c) RangL Team under the MIT license.
