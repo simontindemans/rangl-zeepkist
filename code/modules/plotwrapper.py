@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Gym environment wrapper class for improved plotting
+
 Target: python 3.8
 @author: Simon Tindemans
 Delft University of Technology

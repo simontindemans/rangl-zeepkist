@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Evaluates the clairvoyant agent
+
 Target: python 3.8
 @author: Simon Tindemans
 Delft University of Technology
@@ -15,17 +17,19 @@ import pathlib
 
 # rangl provided modules
 import reference_environment
-import provided.util as util
+from rangl_local_evaluation import util
 
 # own modules
-import envwrapper
-import plotwrapper
-import zeepkist_mpc
-
+from modules import envwrapper
+from modules import plotwrapper
+from modules import zeepkist_mpc
 
 class EvaluateClairvoyant:
     """
-    Adapted from rangl-provided util.py
+    Basic structure for evaluating the clairvoyant agents.
+    
+    Adapted from provided rangl_local_evaluation/util.py to match the structure of 
+    evaluation for non-clairvoyant agents.
     """
 
     def __init__(self, env, agent):
@@ -43,6 +47,14 @@ class EvaluateClairvoyant:
         return seeds
 
     def clairvoyant_agent(self, seeds):
+        """Run the clairvoyant agent and return mean reward over the specified list of seeds.
+
+        Args:
+            seeds (list): sequence of environment seeds to use
+
+        Returns:
+            float: mean reward
+        """        
         rewards = []
         for seed in seeds:
             self.env.seed(seed)
@@ -73,11 +85,12 @@ env = plotwrapper.PlotWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_
 # Initialise MPC agent
 agent = zeepkist_mpc.MPC_agent(env)
 
-# evaluate mean performance on competition seeds
+# create evaluation environment
 evaluate = EvaluateClairvoyant(env, agent)
 # get path to file with seeds
-seedfile = pathlib.Path(__file__).parents[0] / "provided/seeds.csv"
+seedfile = pathlib.Path(__file__).parents[0] / "rangl_local_evaluation/seeds.csv"
 seeds = evaluate.read_seeds(fname=seedfile)
+# evaluate mean performance on competition seeds
 mean_reward = evaluate.clairvoyant_agent(seeds)
 
 print('Full phase mean reward:',mean_reward)

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Trains the zeepkist_rl agent (v1.1.1)
+
 Target: python 3.8
 @author: Simon Tindemans
 Delft University of Technology
@@ -20,17 +22,16 @@ from stable_baselines3.sac import MlpPolicy
 import reference_environment
 
 # own modules
-import envwrapper
-import plotwrapper
-
+from modules import envwrapper
+from modules import plotwrapper
 
 def train(env, models_to_train=1, episodes_per_model=100, **kwargs):
     """
     RL training function. 
     """
 
-    # get path to output directory
-    outputpath = pathlib.Path(__file__).parents[1] / "output"
+    # get path to models directory
+    outputpath = pathlib.Path(__file__).parents[1] / "models"
 
     # using SAC - adjusted gamma to a lower value due to the relatively fast response of the system
     model = SAC(MlpPolicy, env, **kwargs)
@@ -51,25 +52,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
-def run_episode(env, agent, plot_name = None):
-    observation = env.reset()
-    done = False
-    while not done:
-        # Specify the action. Check the effect of any fixed policy by specifying the action here:
-        # note: using 'deterministic = True' for evaluation fixes the SAC policy
-        action, _states = agent.predict(observation, deterministic=True)
-        observation, reward, done, info = env.step(action)
-    # plot the episode using the modified function (includes realisations at the bottom right)
-    if plot_name is not None:
-        env.plot(plot_name)
-    return np.sum(env.state.rewards_all)
-
 # create the environment, including action/observation adaptations defined in the envwrapper module
 base_env = gym.make("reference_environment:reference-environment-v0")
 env = plotwrapper.PlotWrapper(envwrapper.ActWrapper(envwrapper.EfficientObsWrapper(base_env, forecast_length=25)))
 
 # set a default seed for reproducible training
 np.random.seed(987654321)
+
 # Train an agent on the environment
 agent = train(env, episodes_per_model=5000, verbose=1, gamma=0.85)
