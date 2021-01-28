@@ -12,11 +12,11 @@ The *zeepkist team* consists of:
 - Jan Viebahn, TenneT TSO B.V. (support)
 
 ## Installation and usage
-* *(Optional, but recommended)* Set up a new python environment. Instructions to create a new 'zeepkist' environment using ``conda`` are:
-    - ``conda create -n zeepkist python=3.8``
-    - ``conda activate zeepkist``
 * Clone repository: ``git clone https://github.com/simontindemans/rangl-zeepkist.git``
-* Install required packages: ``pip install -r rangl-zeepkist/requirements.txt``
+* *(Optional, but recommended)* Set up a new python 3.8 environment. Instructions to create a new 'zeepkist' environment using ``conda`` are:
+    - ``conda env create -f conda_env.yml``
+    - ``conda activate zeepkist``
+* If you did *not* install the conda environment using ``conda_env.yml``, then manually install required packages: ``pip install -r rangl-zeepkist/requirements.txt``
 * *(Optional)* Run ``python code/train-rl.py`` to train the RL agent (note: this will overwrite ``models/MODEL_0.zip``)
 * Run one or more of the three evaluation scripts to evaluate the performance of the agents
     - MPC agent: ``python code/evaluate-mpc.py`` 
